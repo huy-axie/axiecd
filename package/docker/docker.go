@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	natting "github.com/docker/go-connections/nat"
@@ -34,7 +36,13 @@ func StopAndRemoveContainer(client *client.Client, containername string) error {
 	return nil
 }
 
-func RunContainer(client *client.Client, imagename string, containername string, port string, inputEnv []string) error {
+func RunContainer(client *client.Client, imagename string, containername string, port string, inputEnv []string, volume string) error {
+
+	// get volume mount
+	tmp := strings.Split(volume, ":")
+	localPath := tmp[0]
+	dockerPath := tmp[1]
+
 	// Define a PORT opening
 	newport, err := natting.NewPort("tcp", port)
 	if err != nil {
@@ -59,6 +67,13 @@ func RunContainer(client *client.Client, imagename string, containername string,
 		LogConfig: container.LogConfig{
 			Type:   "json-file",
 			Config: map[string]string{},
+		},
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: localPath,
+				Target: dockerPath,
+			},
 		},
 	}
 

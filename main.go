@@ -15,7 +15,7 @@ type deployment struct {
 	container_port string
 	image_registry string
 	envfile        string
-	mount          string
+	mountPoint     string
 }
 
 // Read the config file from the current directory and marshal
@@ -29,14 +29,14 @@ func main() {
 	flag.StringVar(&deploy.image_registry, "i", "", "Container image")
 	flag.StringVar(&deploy.container_port, "p", "", "Port open")
 	flag.StringVar(&deploy.envfile, "e", "", "Env file")
-	flag.StringVar(&deploy.mount, "m", "", "Mount volume ")
+	flag.StringVar(&deploy.mountPoint, "m", "", "Mount volume locapath:containerpath")
 	flag.Parse()
 
 	host, err := os.Hostname()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("----- Deploy new container \n----- Name: " + deploy.container_name + "\n----- Image: " + deploy.image_registry + "\n----- Port: " + deploy.container_port + "\n----- Env file: " + deploy.envfile + "\n----- Volume mount: " + deploy.mount + "\n----> Host: " + host)
+	fmt.Println("----- Deploy new container \n----- Name: " + deploy.container_name + "\n----- Image: " + deploy.image_registry + "\n----- Port: " + deploy.container_port + "\n----- Env file: " + deploy.envfile + "\n----- Volume mount: " + deploy.mountPoint + "\n----> Host: " + host)
 
 	client, err := client.NewEnvClient()
 	if err != nil {
@@ -50,7 +50,7 @@ func main() {
 	env := d.LoadEnv(deploy.envfile)
 
 	// Run new container
-	err = d.RunContainer(client, deploy.image_registry, deploy.container_name, deploy.container_port, env)
+	err = d.RunContainer(client, deploy.image_registry, deploy.container_name, deploy.container_port, env, deploy.mountPoint)
 	if err != nil {
 		log.Println(err)
 	}
