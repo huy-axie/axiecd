@@ -36,7 +36,7 @@ func StopAndRemoveContainer(client *client.Client, containername string) error {
 	return nil
 }
 
-func RunContainer(client *client.Client, imagename string, containername string, port string, inputEnv []string, volume string) error {
+func RunContainer(client *client.Client, imagename string, containername string, portMapping string, inputEnv []string, volume string) error {
 
 	// get volume mount
 	tmp := strings.Split(volume, ":")
@@ -44,7 +44,12 @@ func RunContainer(client *client.Client, imagename string, containername string,
 	dockerPath := tmp[1]
 
 	// Define a PORT opening
-	newport, err := natting.NewPort("tcp", port)
+
+	tmpPort := strings.Split(portMapping, ":")
+	hostPort := tmpPort[0]
+	dockerPort := tmpPort[1]
+
+	newport, err := natting.NewPort("tcp", dockerPort)
 	if err != nil {
 		fmt.Println("Unable to create docker port")
 		return err
@@ -57,7 +62,7 @@ func RunContainer(client *client.Client, imagename string, containername string,
 			newport: []natting.PortBinding{
 				{
 					HostIP:   "0.0.0.0",
-					HostPort: port,
+					HostPort: hostPort,
 				},
 			},
 		},
@@ -113,7 +118,7 @@ func RunContainer(client *client.Client, imagename string, containername string,
 
 	if err != nil {
 		log.Println(err)
-		return err
+		panic(err)
 	}
 
 	// Run the actual container

@@ -1,19 +1,36 @@
 package docker
 
 import (
-	"io/ioutil"
-	"strings"
+	"bufio"
+	"log"
+	"os"
 )
 
 // Load env var from file
 func LoadEnv(filepath string) []string {
 
-	// load file to byte array
-	content, err := ioutil.ReadFile(filepath)
+	// // load file to byte array
+	// content, err := ioutil.ReadFile(filepath)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// // convert []byte -> []string
+
+	// return strings.Split(string(content), "\n")
+	file, err := os.Open(filepath)
+
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed opening file: %s", err)
 	}
 
-	// convert []byte -> []string
-	return strings.Split(string(content), "\n")
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
+
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
+
+	file.Close()
+	return txtlines
 }

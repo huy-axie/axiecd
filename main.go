@@ -27,7 +27,7 @@ func main() {
 
 	flag.StringVar(&deploy.container_name, "c", "", "Container name")
 	flag.StringVar(&deploy.image_registry, "i", "", "Container image")
-	flag.StringVar(&deploy.container_port, "p", "", "Port open")
+	flag.StringVar(&deploy.container_port, "p", "", "Port open hostport:containerport")
 	flag.StringVar(&deploy.envfile, "e", "", "Env file")
 	flag.StringVar(&deploy.mountPoint, "m", "", "Mount volume locapath:containerpath")
 	flag.Parse()
@@ -38,19 +38,24 @@ func main() {
 	}
 	fmt.Println("----- Deploy new container \n----- Name: " + deploy.container_name + "\n----- Image: " + deploy.image_registry + "\n----- Port: " + deploy.container_port + "\n----- Env file: " + deploy.envfile + "\n----- Volume mount: " + deploy.mountPoint + "\n----> Host: " + host)
 
-	client, err := client.NewEnvClient()
+	// client, err := client.NewEnvClient()
+	// if err != nil {
+	// 	fmt.Printf("Unable to create docker client: %s", err)
+	// }
+	// ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		fmt.Printf("Unable to create docker client: %s", err)
+		panic(err)
 	}
 
 	// Stops and removes a container
-	d.StopAndRemoveContainer(client, deploy.container_name)
+	d.StopAndRemoveContainer(cli, deploy.container_name)
 
 	// Load env from file
-	env := d.LoadEnv(deploy.envfile)
+	env := (d.LoadEnv(deploy.envfile))
 
 	// Run new container
-	err = d.RunContainer(client, deploy.image_registry, deploy.container_name, deploy.container_port, env, deploy.mountPoint)
+	err = d.RunContainer(cli, deploy.image_registry, deploy.container_name, deploy.container_port, env, deploy.mountPoint)
 	if err != nil {
 		log.Println(err)
 	}
